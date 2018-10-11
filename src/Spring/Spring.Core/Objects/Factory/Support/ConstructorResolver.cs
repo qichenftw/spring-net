@@ -94,7 +94,7 @@ namespace Spring.Objects.Factory.Support
             ConstructorInstantiationInfo constructorInstantiationInfo = GetConstructorInstantiationInfo(
                 objectName, rod, chosenCtors, explicitArgs);
 
-            wrapper.WrappedInstance = instantiationStrategy.Instantiate(rod, objectName, this.objectFactory,
+            wrapper.WrappedInstance = instantiationStrategy.Instantiate(rod, objectName, objectFactory,
                     constructorInstantiationInfo.ConstructorInfo, constructorInstantiationInfo.ArgInstances);
 
             if (log.IsDebugEnabled)
@@ -381,8 +381,8 @@ namespace Spring.Objects.Factory.Support
             unsatisfiedDependencyExceptionData = null;
 
             ArgumentsHolder args = new ArgumentsHolder(paramTypes.Length);
-            ISet usedValueHolders = new HybridSet();
-            IList autowiredObjectNames = new LinkedList();
+            var usedValueHolders = new HybridSet();
+            var autowiredObjectNames = new List<string>();
             bool resolveNecessary = false;
 
             ParameterInfo[] argTypes = methodOrCtorInfo.GetParameters();
@@ -486,11 +486,15 @@ namespace Spring.Objects.Factory.Support
         {
         }
 
-        private object ResolveAutoWiredArgument(MethodParameter methodParameter, string objectName, IList autowiredObjectNames)
+        private object ResolveAutoWiredArgument(
+            MethodParameter methodParameter,
+            string objectName, 
+            List<string> autowiredObjectNames)
         {
-            return
-                this.autowireFactory.ResolveDependency(new DependencyDescriptor(methodParameter, true), objectName,
-                                                       autowiredObjectNames);
+            return autowireFactory.ResolveDependency(
+                new DependencyDescriptor(methodParameter, true),
+                objectName,
+                autowiredObjectNames);
         }
 
         /// <summary>
@@ -609,25 +613,26 @@ namespace Spring.Objects.Factory.Support
             MemberInfo[] methods = searchType.FindMembers(MemberTypes.Method, methodFlags, new CriteriaMemberFilter().FilterMemberByCriteria, methodCriteria);
             return methods.Cast<MethodInfo>().ToArray();
         }
-        internal class ArgumentsHolder
+
+        private class ArgumentsHolder
         {
-            public object[] rawArguments;
-            public object[] arguments;
-            public object[] preparedArguments;
+            public readonly object[] rawArguments;
+            public readonly object[] arguments;
+            public readonly object[] preparedArguments;
 
 
             public ArgumentsHolder(int size)
             {
-                this.rawArguments = new object[size];
-                this.arguments = new object[size];
-                this.preparedArguments = new object[size];
+                rawArguments = new object[size];
+                arguments = new object[size];
+                preparedArguments = new object[size];
             }
 
             public ArgumentsHolder(object[] args)
             {
-                this.rawArguments = args;
-                this.arguments = args;
-                this.preparedArguments = args;
+                rawArguments = args;
+                arguments = args;
+                preparedArguments = args;
             }
 
             public int GetTypeDifferenceWeight(Type[] paramTypes)
@@ -636,8 +641,8 @@ namespace Spring.Objects.Factory.Support
                 // Try type difference weight on both the converted arguments and
                 // the raw arguments. If the raw weight is better, use it.
                 // Decrease raw weight by 1024 to prefer it over equal converted weight.
-                int typeDiffWeight = AutowireUtils.GetTypeDifferenceWeight(paramTypes, this.arguments);
-                int rawTypeDiffWeight = AutowireUtils.GetTypeDifferenceWeight(paramTypes, this.rawArguments) - 1024;
+                int typeDiffWeight = AutowireUtils.GetTypeDifferenceWeight(paramTypes, arguments);
+                int rawTypeDiffWeight = AutowireUtils.GetTypeDifferenceWeight(paramTypes, rawArguments) - 1024;
                 return (rawTypeDiffWeight < typeDiffWeight ? rawTypeDiffWeight : typeDiffWeight);
             }
         }

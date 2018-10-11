@@ -1,7 +1,7 @@
 #region License
 
 /*
- * Copyright © 2002-2011 the original author or authors.
+ * Copyright ï¿½ 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ namespace Spring.Objects.Factory.Config
         public void Serialization()
         {
             IDictionary typeAliases = new Hashtable();
-            typeAliases.Add("LinkedList", typeof(LinkedList).AssemblyQualifiedName);
+            typeAliases.Add("LinkedList", typeof(ArrayList).AssemblyQualifiedName);
 
             TypeAliasConfigurer typeAliasConfigurer = new TypeAliasConfigurer();
             typeAliasConfigurer.TypeAliases = typeAliases;
@@ -65,7 +65,7 @@ namespace Spring.Objects.Factory.Config
         public void UseInvalidTypeForDictionaryValue()
         {
             IDictionary typeAliases = new Hashtable();
-            typeAliases.Add("LinkedList", new LinkedList());
+            typeAliases.Add("LinkedList", new ArrayList());
 
             TypeAliasConfigurer typeAliasConfigurer = new TypeAliasConfigurer();
             typeAliasConfigurer.TypeAliases = typeAliases;
@@ -89,7 +89,7 @@ namespace Spring.Objects.Factory.Config
         public void SunnyDayScenarioUsingType()
         {
             IDictionary typeAliases = new Hashtable();
-            typeAliases.Add("LinkedList", typeof(LinkedList));
+            typeAliases.Add("LinkedList", typeof(ArrayList));
 
             CreateConfigurerAndTestLinkedList(typeAliases);
         }
@@ -164,7 +164,7 @@ namespace Spring.Objects.Factory.Config
                           "TypeAliasConfigurer did not register a type alias with the TypeRegistry");
 
             Type linkedListType = TypeRegistry.ResolveType("LinkedList");
-            Assert.IsTrue(linkedListType.Equals(typeof(LinkedList)), "Incorrect type resolved.");
+            Assert.IsTrue(linkedListType.Equals(typeof(ArrayList)), "Incorrect type resolved.");
             Assert.AreEqual(1,typeAliasConfigurer.Order);
         }
     }

@@ -365,9 +365,9 @@ namespace Spring.Objects
 		private ITestObject spouse;
 		private ITestObject sibling;
 		private string touchy;
-		private ICollection friends = new LinkedList();
+		private ICollection friends = new ArrayList();
 		private TestObjectList typedFriends = new TestObjectList();
-		private ICollection pets = new LinkedList();
+		private ICollection pets = new ArrayList();
 		private IDictionary periodicTable = new Hashtable();
 
 		private string[] favoriteQuotes = new string[]

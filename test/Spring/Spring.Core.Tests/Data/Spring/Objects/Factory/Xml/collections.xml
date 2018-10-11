@@ -403,7 +403,7 @@
 			</list>
 		</property>
 		<property name="TargetListType">
-			<value>Spring.Collections.LinkedList</value>
+			<value>System.Collections.ArrayList</value>
 		</property>
 	</object>
 	<object id="pListFactory" type="Spring.Objects.Factory.Config.ListFactoryObject, Spring.Core">
@@ -414,7 +414,7 @@
 			</list>
 		</property>
 		<property name="TargetListType">
-			<value>Spring.Collections.LinkedList</value>
+			<value>System.Collections.ArrayList</value>
 		</property>
 		<property name="IsSingleton">
 			<value>true</value>

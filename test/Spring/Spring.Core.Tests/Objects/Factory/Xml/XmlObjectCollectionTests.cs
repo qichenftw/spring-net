@@ -1,7 +1,7 @@
 #region License
 
 /*
- * Copyright © 2002-2011 the original author or authors.
+ * Copyright ï¿½ 2002-2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -618,7 +618,7 @@ namespace Spring.Objects.Factory.Xml
             IResource resource = new ReadOnlyXmlTestResource("collections.xml", GetType());
             XmlObjectFactory xof = new XmlObjectFactory(resource);
             IList list = (IList) xof.GetObject("listFactory");
-            Assert.IsTrue(list is LinkedList);
+            Assert.IsTrue(list is ArrayList);
             Assert.IsTrue(list.Count == 2);
             Assert.AreEqual("bar", list[0]);
             Assert.AreEqual("jenny", list[1]);
@@ -630,7 +630,7 @@ namespace Spring.Objects.Factory.Xml
             IResource resource = new ReadOnlyXmlTestResource("collections.xml", GetType());
             XmlObjectFactory xof = new XmlObjectFactory(resource);
             IList list = (IList) xof.GetObject("pListFactory");
-            Assert.IsTrue(list is LinkedList);
+            Assert.IsTrue(list is ArrayList);
             Assert.IsTrue(list.Count == 2);
             Assert.AreEqual("bar", list[0]);
             Assert.AreEqual("jenny", list[1]);

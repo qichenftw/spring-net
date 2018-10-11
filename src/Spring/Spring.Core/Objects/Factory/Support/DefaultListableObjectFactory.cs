@@ -476,7 +476,7 @@ namespace Spring.Objects.Factory.Support
                     "Value [" + autowiredValue + "] does not implement specified type [" + dependencyType.Name + "]");
                 if (!resolvableDependencies.ContainsKey(dependencyType))
                 {
-                    this.resolvableDependencies.Add(dependencyType, autowiredValue);
+                    resolvableDependencies.Add(dependencyType, autowiredValue);
                 }
             }
         }
@@ -1089,13 +1089,15 @@ namespace Spring.Objects.Factory.Support
         /// <param name="descriptor">The descriptor for the dependency.</param>
         /// <param name="objectName">Name of the object which declares the present dependency.</param>
         /// <param name="autowiredObjectNames">A list that all names of autowired object (used for
-        /// resolving the present dependency) are supposed to be added to.</param>
+        ///     resolving the present dependency) are supposed to be added to.</param>
         /// <returns>
         /// the resolved object, or <code>null</code> if none found
         /// </returns>
         /// <exception cref="ObjectsException">if dependency resolution failed</exception>
-        public override object ResolveDependency(DependencyDescriptor descriptor, string objectName,
-                                                 IList autowiredObjectNames)
+        public override object ResolveDependency(
+            DependencyDescriptor descriptor, 
+            string objectName,
+            IList<string> autowiredObjectNames)
         {
             Type type = descriptor.DependencyType;
             Object value = AutowireCandidateResolver.GetSuggestedValue(descriptor);
@@ -1114,7 +1116,7 @@ namespace Spring.Objects.Factory.Support
             if (type.IsArray)
             {
                 Type elementType = type.GetElementType();
-                IDictionary matchingObjects = FindAutowireCandidates(objectName, elementType, descriptor);
+                var matchingObjects = FindAutowireCandidates(objectName, elementType, descriptor);
                 if (matchingObjects.Count == 0)
                 {
                     if (descriptor.Required)
@@ -1125,7 +1127,7 @@ namespace Spring.Objects.Factory.Support
                 }
                 if (autowiredObjectNames != null)
                 {
-                    foreach (DictionaryEntry matchingObject in matchingObjects)
+                    foreach (var matchingObject in matchingObjects)
                     {
                         autowiredObjectNames.Add(matchingObject.Key);
                     }
@@ -1143,7 +1145,7 @@ namespace Spring.Objects.Factory.Support
                     throw new NoSuchObjectDefinitionException(type,
                                     "expected first generic to be a string but is " + type.GetGenericArguments()[0]);
 
-                IDictionary matchingObjects = FindAutowireCandidates(objectName, elementType, descriptor);
+                var matchingObjects = FindAutowireCandidates(objectName, elementType, descriptor);
                 if (matchingObjects.Count == 0)
                 {
                     if (descriptor.Required)
@@ -1154,7 +1156,7 @@ namespace Spring.Objects.Factory.Support
                 }
                 if (autowiredObjectNames != null)
                 {
-                    foreach (DictionaryEntry matchingObject in matchingObjects)
+                    foreach (var matchingObject in matchingObjects)
                     {
                         autowiredObjectNames.Add(matchingObject.Key);
                     }
@@ -1172,7 +1174,7 @@ namespace Spring.Objects.Factory.Support
             }
             else
             {
-                IDictionary matchingObjects = FindAutowireCandidates(objectName, type, descriptor);
+                var matchingObjects = FindAutowireCandidates(objectName, type, descriptor);
                 if (matchingObjects.Count == 0)
                 {
                     if (descriptor.Required)
@@ -1192,17 +1194,12 @@ namespace Spring.Objects.Factory.Support
                         throw new NoSuchObjectDefinitionException(type,
                                         "expected single matching object but found " + matchingObjects.Count + ": " + matchingObjects);
                     }
-                    if (autowiredObjectNames != null)
-                    {
-                        autowiredObjectNames.Add(primaryObjecName);
-                    }
+
+                    autowiredObjectNames?.Add(primaryObjecName);
                     return matchingObjects[primaryObjecName];
                 }
-                DictionaryEntry entry = (DictionaryEntry)ObjectUtils.EnumerateFirstElement(matchingObjects);
-                if (autowiredObjectNames != null)
-                {
-                    autowiredObjectNames.Add(entry.Key);
-                }
+                var entry = (KeyValuePair<string, object>) ObjectUtils.EnumerateFirstElement(matchingObjects);
+                autowiredObjectNames?.Add(entry.Key);
                 return entry.Value;
             }
         }
@@ -1289,18 +1286,18 @@ namespace Spring.Objects.Factory.Support
                                                       "expected at least 1 object which qualifies as autowire candidate for this dependency. ");
         }
 
-        private IDictionary FindAutowireCandidates(string objectName, Type requiredType, DependencyDescriptor descriptor)
+        private Dictionary<string, object> FindAutowireCandidates(string objectName, Type requiredType, DependencyDescriptor descriptor)
         {
             IList<string> candidateNames =
                 ObjectFactoryUtils.ObjectNamesForTypeIncludingAncestors(this, requiredType, true, descriptor.Eager);
-            IDictionary result = new OrderedDictionary(candidateNames.Count);
+            var result = new Dictionary<string, object>(candidateNames.Count);
 
             foreach (var entry in resolvableDependencies)
             {
                 Type autoWiringType = entry.Key;
                 if (autoWiringType.IsAssignableFrom(requiredType))
                 {
-                    object autowiringValue = this.resolvableDependencies[autoWiringType];
+                    object autowiringValue = resolvableDependencies[autoWiringType];
                     if (requiredType.IsInstanceOfType(autowiringValue))
                     {
                         result.Add(ObjectUtils.IdentityToString(autowiringValue), autowiringValue);

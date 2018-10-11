@@ -1,5 +1,3 @@
-#region License
-
 /*
  * Copyright 2002-2010 the original author or authors.
  *
@@ -15,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#endregion
 
 using System;
 using System.Collections;
@@ -40,22 +36,18 @@ namespace Spring.Messaging.Nms.Connections
     /// <author>Mark Pollack</author>
     public class CachedSession : IDecoratorSession
     {
-        #region Logging Definition
-
         private static readonly ILog LOG = LogManager.GetLogger(typeof(CachedSession));
 
-        #endregion
-
-        private ISession target;
-        private LinkedList sessionList;
-        private int sessionCacheSize;
-        private IDictionary cachedProducers = new Hashtable();
-        private IDictionary cachedConsumers = new Hashtable();
+        private readonly ISession target;
+        private readonly IList<ISession> sessionList;
+        private readonly int sessionCacheSize;
+        private readonly IDictionary cachedProducers = new Hashtable();
+        private readonly IDictionary cachedConsumers = new Hashtable();
         private IMessageProducer cachedUnspecifiedDestinationMessageProducer;
-        private bool shouldCacheProducers;
-        private bool shouldCacheConsumers;
+        private readonly bool shouldCacheProducers;
+        private readonly bool shouldCacheConsumers;
         private bool transactionOpen = false;
-        private CachingConnectionFactory ccf;
+        private readonly CachingConnectionFactory ccf;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CachedSession"/> class.
@@ -63,7 +55,10 @@ namespace Spring.Messaging.Nms.Connections
         /// <param name="targetSession">The target session.</param>
         /// <param name="sessionList">The session list.</param>
         /// <param name="ccf">The CachingConnectionFactory.</param>
-        public CachedSession(ISession targetSession, LinkedList sessionList, CachingConnectionFactory ccf)
+        public CachedSession(
+            ISession targetSession,
+            IList<ISession> sessionList, 
+            CachingConnectionFactory ccf)
         {
             target = targetSession;
             this.sessionList = sessionList;
@@ -93,25 +88,18 @@ namespace Spring.Messaging.Nms.Connections
             {
                 if (cachedUnspecifiedDestinationMessageProducer != null)
                 {
-                    #region Logging
-
                     if (LOG.IsDebugEnabled)
                     {
                         LOG.Debug("Found cached MessageProducer for unspecified destination");
                     }
-
-                    #endregion
                 }
                 else
                 {
-                    #region Logging
-
                     if (LOG.IsDebugEnabled)
                     {
                         LOG.Debug("Creating cached MessageProducer for unspecified destination");
                     }
 
-                    #endregion
                     cachedUnspecifiedDestinationMessageProducer = target.CreateProducer();
 
                 }
@@ -138,26 +126,20 @@ namespace Spring.Messaging.Nms.Connections
                 IMessageProducer producer = (IMessageProducer)cachedProducers[destination];
                 if (producer != null)
                 {
-                    #region Logging
-
                     if (LOG.IsDebugEnabled)
                     {
                         LOG.Debug("Found cached MessageProducer for destination [" + destination + "]");
                     }
-
-                    #endregion
                 }
                 else
                 {
                     producer = target.CreateProducer(destination);
-                    #region Logging
 
                     if (LOG.IsDebugEnabled)
                     {
                         LOG.Debug("Creating cached MessageProducer for destination [" + destination + "]");
                     }
 
-                    #endregion
                     cachedProducers.Add(destination, producer);
 
                 }
@@ -222,14 +204,10 @@ namespace Spring.Messaging.Nms.Connections
             // Allow for multiple close calls...
             if (!sessionList.Contains(this))
             {
-                #region Logging
-
                 if (LOG.IsDebugEnabled)
                 {
                     LOG.Debug("Returning cached Session: " + target);
                 }
-
-                #endregion
 
                 sessionList.Add(this); //add to end of linked list.
             }
@@ -382,8 +360,6 @@ namespace Spring.Messaging.Nms.Connections
             }
             return new CachedMessageConsumer(consumer);
         }
-
-        #region Pass through implementations
 
         /// <summary>
         /// Gets the queue.
@@ -667,7 +643,6 @@ namespace Spring.Messaging.Nms.Connections
             this.transactionOpen = true;
             return target.CreateBrowser(queue);
         }
-        #endregion
 
         /// <summary>
         /// Returns a <see cref="T:System.String"/> that represents the current <see cref="T:System.Object"/>.
@@ -683,10 +658,10 @@ namespace Spring.Messaging.Nms.Connections
 
     internal class ConsumerCacheKey
     {
-        private IDestination destination;
-        private string selector;
-        private bool noLocal;
-        private string subscription;
+        private readonly IDestination destination;
+        private readonly string selector;
+        private readonly bool noLocal;
+        private readonly string subscription;
 
         public ConsumerCacheKey(IDestination destination, string selector, bool noLocal, string subscription)
         {

@@ -1,5 +1,3 @@
-#region License
-
 /*
  * Copyright 2002-2010 the original author or authors.
  *
@@ -16,10 +14,9 @@
  * limitations under the License.
  */
 
-#endregion
-
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using Apache.NMS;
 using Common.Logging;
 using Spring.Collections;
@@ -58,21 +55,13 @@ namespace Spring.Messaging.Nms.Connections
     /// <author>Mark Pollack (.NET)</author>
     public class CachingConnectionFactory : SingleConnectionFactory
     {
-        #region Logging Definition
-
         private static readonly ILog LOG = LogManager.GetLogger(typeof(CachingConnectionFactory));
-
-        #endregion
 
         private int sessionCacheSize = 1;
 
-        private bool cacheProducers = true;
-
-        private bool cacheConsumers = true;
-
         private volatile bool active = true;
 
-        private IDictionary cachedSessions = new Hashtable();
+        private readonly Dictionary<AcknowledgementMode, List<ISession>> cachedSessions = new Dictionary<AcknowledgementMode, List<ISession>>();
 
 
         /// <summary>
@@ -113,7 +102,7 @@ namespace Spring.Messaging.Nms.Connections
         /// <value>The size of the session cache.</value>
         public int SessionCacheSize
         {
-            get { return sessionCacheSize; }
+            get => sessionCacheSize;
             set
             {
                 AssertUtils.IsTrue(value >= 1, "Session cache size must be 1 or higher");
@@ -133,12 +122,7 @@ namespace Spring.Messaging.Nms.Connections
         /// </para>
         /// </remarks>
         /// <value><c>true</c> if should cache message producers; otherwise, <c>false</c>.</value>
-        public bool CacheProducers
-        {
-            get { return cacheProducers; }
-            set { cacheProducers = value; }
-        }
-
+        public bool CacheProducers { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether o cache JMS MessageConsumers per 
@@ -154,11 +138,7 @@ namespace Spring.Messaging.Nms.Connections
         /// </para>
         /// </remarks>
         /// <value><c>true</c> to cache consumers per session instance; otherwise, <c>false</c>.</value>
-        public bool CacheConsumers
-        {
-            get { return cacheConsumers; }
-            set { cacheConsumers = value; }
-        }
+        public bool CacheConsumers { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether this instance is active.
@@ -166,8 +146,8 @@ namespace Spring.Messaging.Nms.Connections
         /// <value><c>true</c> if this instance is active; otherwise, <c>false</c>.</value>
         public bool IsActive
         {
-            get { return active; }
-            set { active = value; }
+            get => active;
+            set => active = value;
         }
 
         /// <summary>
@@ -178,9 +158,9 @@ namespace Spring.Messaging.Nms.Connections
             this.active = false;
             lock (cachedSessions)
             {
-                foreach (DictionaryEntry dictionaryEntry in cachedSessions)
+                foreach (var pair in cachedSessions)
                 {
-                    LinkedList sessionList = (LinkedList) dictionaryEntry.Value;
+                    var sessionList = pair.Value;
                     lock (sessionList)
                     {
                         foreach (ISession session in sessionList)
@@ -212,13 +192,13 @@ namespace Spring.Messaging.Nms.Connections
         /// </returns>
         public override ISession GetSession(IConnection con, AcknowledgementMode mode)
         {
-            LinkedList sessionList;
+            List<ISession> sessionList;
             lock (cachedSessions)
             {
-                sessionList = (LinkedList) cachedSessions[mode];
+                sessionList = cachedSessions[mode];
                 if (sessionList == null)
                 {
-                    sessionList = new LinkedList();
+                    sessionList = new List<ISession>();
                     cachedSessions.Add(mode, sessionList);
                 }
             }
@@ -259,7 +239,7 @@ namespace Spring.Messaging.Nms.Connections
         /// <param name="targetSession">The original Session to wrap.</param>
         /// <param name="sessionList">The List of cached Sessions that the given Session belongs to.</param>
         /// <returns>The wrapped Session</returns>
-        protected virtual ISession GetCachedSessionWrapper(ISession targetSession, LinkedList sessionList)
+        protected virtual ISession GetCachedSessionWrapper(ISession targetSession, IList<ISession> sessionList)
         {
             return new CachedSession(targetSession, sessionList, this);
         }
